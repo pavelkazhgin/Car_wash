@@ -1,0 +1,7 @@
+PORT = 3000
+HOST = 127.0.0.1
+USER = admin
+PG_HOST = 127.0.0.1
+PG_DATABASE = showroom
+PG_PASS = 123
+PG_PORT = 5432
