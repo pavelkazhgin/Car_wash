@@ -1,8 +1,8 @@
 import { UploadedFile } from "express-fileupload";
-import { dirname } from "path";
+
 
 require('dotenv').config();
-const fs = require('fs/promises')
+
 const dbCar = new (require("./repository").CarDatabase)();
 
 

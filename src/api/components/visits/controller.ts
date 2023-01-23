@@ -1,9 +1,8 @@
-import { UploadedFile } from "express-fileupload";
-import { dirname } from "path";
 
 require('dotenv').config();
-const fs = require('fs/promises')
+
 const dbVisit = new (require("./repository").VisitDatabase)();
+const boxController = new (require('../box/controller').BoxController)();
 
 
 
@@ -14,11 +13,22 @@ class VisitController {
 
     const createVisit = await dbVisit.visitNew(status, userId, carId, boxId)
     if (createVisit.id){
-      return {
-        success: true,
-        content: createVisit,
-        message: 'Забронирвано на час!',
-        code: 200
+      let updateStatusBox = await boxController.updateStatusBox(createVisit.boxId);
+      if(updateStatusBox){
+        return {
+          success: true,
+          content: createVisit,
+          message: 'Забронирвано на час!',
+          code: 200
+        }
+      } else {
+        await this.deleteVisit(createVisit.id);
+        return {
+          success: false,
+          content: {},
+          message: 'Бокс занят!',
+          code: 400
+        }
       }
     }
     return {
@@ -32,11 +42,30 @@ class VisitController {
   async updateVisit(visitId: number){
     const result = await dbVisit.updateVisit(visitId)
       if(result){
-        return {
-          success: true,
-          content: result,
-          message: 'Статус бронирования обновлен!',
-          code: 200
+        const currentVisit = await dbVisit.currentVisit(visitId);
+        if (currentVisit.boxId){
+          let updateStatusBox = await boxController.updateStatusBox(currentVisit.boxId);
+          if (updateStatusBox){
+            return {
+              success: true,
+              content: currentVisit,
+              message: 'Посещение завершено!',
+              code: 200
+            }
+          }
+          return {
+            success: false,
+            content: {},
+            message: 'Ошибка обновления статуса бронирования!',
+            code: 403
+          }
+        } else {
+          return {
+            success: false,
+            content: {},
+            message: 'Запись не найдена!',
+            code: 403
+        }
         }
         } else {
           return {
