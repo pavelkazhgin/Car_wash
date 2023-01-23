@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '.';
+import Visit from './visit';
 
 interface BoxAttributes {
   id: number,
@@ -37,6 +38,17 @@ interface BoxCreationAttributes
         }
       }
     );
+
+    Box.hasMany(Visit, {
+      sourceKey: 'id',
+      foreignKey: 'boxId',
+      as: 'visits'
+    });
+    
+    Visit.belongsTo(Box, {
+      foreignKey: 'boxId',
+      as: 'box'
+    });
 
     export default Box;
 // 'use strict';

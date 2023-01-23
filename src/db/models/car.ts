@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '.';
 import Visit from './visit';
 
+
 interface CarAttributes {
   id: number,
   brand: string,
@@ -57,13 +58,14 @@ const Car = sequelize.define<CarInstance>(
 Car.hasMany(Visit, {
   sourceKey: 'id',
   foreignKey: 'carId',
-  as: 'cars'
+  as: 'visits'
 });
 
-Visit.belongsTo(Visit, {
-  foreignKey: 'userId',
-  as: 'user'
+Visit.belongsTo(Car, {
+  foreignKey: 'carId',
+  as: 'car'
 });
+
 
 export default Car;
 

@@ -67,24 +67,23 @@ interface UserInstance
       as: 'cars'
     });
 
-    // User.hasMany(Visit, {
-    //   sourceKey: 'id',
-    //   foreignKey: 'userId',
-    //   as: 'visits'
-    // });
-
     Car.belongsTo(User, {
       foreignKey: 'userId',
       as: 'user'
     });
 
-    // Visit.belongsTo(User, {
-    //   foreignKey: 'userId',
-    //   as: 'user'
-    // });
+    User.hasMany(Visit, {
+      sourceKey: 'id',
+      foreignKey: 'userId',
+      as: 'visits'
+    });
 
+    Visit.belongsTo(User, {
+      foreignKey: 'userId',
+      as: 'user'
+    });
 
-    export default User;
+export default User;
 
 
 

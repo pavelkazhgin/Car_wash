@@ -1,5 +1,10 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '.';
+// const Car: Model = require('./car');
+// const User: Model = require('./user');
+import User from './user';
+import Car from './car';
+
 
 interface VisitAttributes {
   id: number;
@@ -38,20 +43,31 @@ interface VisitInstance
         userId: {
           allowNull: false,
           type: DataTypes.INTEGER,
+          references: {
+            model: 'Users',
+            key: 'id',
+          },
         },
         carId: {
           allowNull: true,
           type: DataTypes.INTEGER,
+          references: {
+            model: 'Cars',
+            key: 'id',
+          },
         },
         boxId: {
           allowNull: false,
           type: DataTypes.INTEGER,
+          references: {
+            model: 'Boxes',
+            key: 'id',
+          },
         }
       }
     );
 
-
-    export default Visit;
+export default Visit;
 
 // 'use strict';
 // const {

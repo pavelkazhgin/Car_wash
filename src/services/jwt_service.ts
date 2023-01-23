@@ -9,9 +9,8 @@ const REFRESH_SECRET: string | undefined  = process.env.REFRESH_SECRET;
 const ACCESS_EXPIRATION: string | undefined  = process.env.ACCESS_EXPIRATION; 
 const ACCESS_SECRET: string | undefined  = process.env.ACCESS_SECRET; 
 
-interface PayloadToken {
-  uid: number
-}
+import { PayloadToken } from '../interfaces/jwt_interfaces';
+
 class JWTService {
 
   constructor(){};
@@ -29,7 +28,7 @@ class JWTService {
     return null
   }
 
-    async validateJwt(req: Request, res: Response, next: void){
+    async validateJwt(req: Request, res: Response){
       let payload: PayloadToken = {uid: Number(req.body.userId)}
 
       return new Promise((resolve, reject) => {
@@ -97,16 +96,22 @@ class JWTService {
           }
         });
       } else {
-          reject("Токены отсутствуют")
+          reject({
+            res: res,
+            req: req
+          })
         };
         } else {
-          reject("no credentials")
+          reject({
+            res: res,
+            req: req
+          })
         }
     });
   }
 }
 
 
-module.exports = {JWTService};
+export = { JWTService };
 
 
