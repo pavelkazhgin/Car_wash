@@ -13,30 +13,24 @@ class VisitController {
 
     const createVisit = await dbVisit.visitNew(status, userId, carId, boxId)
     if (createVisit.id){
-      let updateStatusBox = await boxController.updateStatusBox(createVisit.boxId);
-      if(updateStatusBox){
-        return {
+      let updateStatusBox = setTimeout(
+       await boxController.updateStatusBox(createVisit.boxId),
+       1000 * 60 * 60
+       );
+      return {
           success: true,
           content: createVisit,
           message: 'Забронирвано на час!',
           code: 200
         }
-      } else {
-        await this.deleteVisit(createVisit.id);
-        return {
-          success: false,
-          content: {},
-          message: 'Бокс занят!',
-          code: 400
-        }
-      }
-    }
+    } else {
     return {
       success: false,
       content: {},
       message: 'Ошибка при бронировании!',
       code: 403
-      }   
+      }  
+    } 
   }
 
   async updateVisit(visitId: number){
@@ -44,20 +38,15 @@ class VisitController {
       if(result){
         const currentVisit = await dbVisit.currentVisit(visitId);
         if (currentVisit.boxId){
-          let updateStatusBox = await boxController.updateStatusBox(currentVisit.boxId);
-          if (updateStatusBox){
-            return {
-              success: true,
-              content: currentVisit,
-              message: 'Посещение завершено!',
-              code: 200
-            }
-          }
+          let updateStatusBox = setTimeout(
+            await boxController.updateStatusBox(currentVisit.boxId),
+            1000 * 60 * 60
+          ) ;
           return {
-            success: false,
-            content: {},
-            message: 'Ошибка обновления статуса бронирования!',
-            code: 403
+            success: true,
+            content: currentVisit,
+            message: 'Посещение завершено!',
+            code: 200
           }
         } else {
           return {
@@ -65,7 +54,7 @@ class VisitController {
             content: {},
             message: 'Запись не найдена!',
             code: 403
-        }
+          }
         }
         } else {
           return {
