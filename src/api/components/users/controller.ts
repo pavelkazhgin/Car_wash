@@ -25,15 +25,15 @@ class UserController {
             phone: result.phone,
             email: result.email
           }
-          let authToken = jwtService.generateAccessToken({uid: payload.id});
-          let refresh_token = jwtService.generateRefreshToken({uid: payload.id});
-          redis.set(payload.id, JSON.stringify({
-            refresh_token: refresh_token,
-            expires: '3600s'
-        }),
-        redis.print
-    );
-          console.log(authToken)
+          let tokens = await jwtService.generateTokens(payload.id)
+          if (!tokens){
+            return {
+              success: false,
+              content: {},
+              message: `Ошибка при вычислении сигнатуры токена!`,
+              code: 500
+            }
+          }
           return {
             success: true,
             content: {
@@ -42,8 +42,7 @@ class UserController {
                 lastName: result.lastName,
                 phone: result.phone,
                 email: result.email,
-                authToken,
-                refresh_token
+                tokens: tokens
               },
             message: `User signIn!`,
             code: 500

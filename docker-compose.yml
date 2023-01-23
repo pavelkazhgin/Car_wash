@@ -1,0 +1,32 @@
+version: "3"
+services:
+  carwash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: "nodejs:alpine"
+    container_name: nodejs
+    restart: unless-stopped
+    ports: 
+      - "3000:3000"
+
+  postgres:
+    image: postgres:14.6
+    container_name: carwash
+    environment:
+      POSTGRES_DB: "carwasher"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "123"
+    volumes:
+    - /var/local/db/squanch_core:/var/lib/postgresql/data;
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: "redis:alpine"
+    container_name: keyvaluestorage
+    ports: 
+      - "6379:6379"
+
+    

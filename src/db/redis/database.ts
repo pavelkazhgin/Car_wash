@@ -1,12 +1,25 @@
 'docker run --name myrediskeystore -d redis:latest'
+require('dotenv').config();
+
+import { RedisClientType } from "@redis/client";
 
 const redis = require("redis");
 
-let rediscl = redis.createClient();
+class Redis {
+  constructor(){}
 
+  clientOn(){
+    let client =  redis.createClient({
+      host: process.env.HOST,
+      port: process.env.PORT
+    })
+    if (!client){
+      console.log("Redis-client dont crate connection")
+    }
+    return client;
+  }
+}
 
-rediscl.on("connect", function () {
-  console.log("Redis plugged in.");
-});
+const redisCli = (new Redis()).clientOn();
 
-module.exports = { rediscl }
+export default redisCli 

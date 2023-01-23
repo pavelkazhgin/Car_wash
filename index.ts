@@ -11,5 +11,5 @@ console.log(__dirname,
 
 const server = http.createServer(app);
 app.listen(PORT, () => {
-  console.log(`Server start on port ${PORT}`)
+  console.log(`Server start on port ${PORT}`, new Date((new Date()).getTime() + 1000*60*3))
 })
