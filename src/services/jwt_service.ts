@@ -1,7 +1,8 @@
 require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
-import {Request, Response} from 'express';
+import {NextFunction, Request, Response} from 'express';
+import { nextTick } from 'process';
 import  redisCli  from '../db/redis/database';
 
 const REFRESH_EXPIRATION: string | undefined = process.env.REFRESH_EXPIRATION;
@@ -28,87 +29,100 @@ class JWTService {
     return null
   }
 
-    async validateJwt(req: Request, res: Response){
+     validateJwt(req: Request, res: Response, next: NextFunction){
       let payload: PayloadToken = {uid: Number(req.body.userId)}
-
-      return new Promise((resolve, reject) => {
+        console.log('this is cook', req.cookies)
         if(ACCESS_SECRET && ACCESS_EXPIRATION && REFRESH_SECRET && REFRESH_EXPIRATION){
+          
           let accesstoken: string | null = req.cookies.access_token || null;
           let refreshtoken:  string | null = req.cookies.refresh_token || null;
-  
-        if (accesstoken && refreshtoken) {
-  
-        // They are, so let's verify the access token  
-          jwt.verify(accesstoken, ACCESS_SECRET, async function(err: any, decoded: PayloadToken) {
-  
-            if (err) {
-              if (err.name === "TokenExpiredError") {
-                let redis_token = redisCli.get(decoded.uid, function(err: any, val: string) {
-                  return err ? null : val ? val : null;
-                });
-  
+          if (accesstoken && refreshtoken) {
+          console.log('here 1')
+          
+          jwt.verify(accesstoken, ACCESS_SECRET, async function(err: any, decoded: PayloadToken) { 
+            console.log('here 2')
+            if(err){
+              if(err.name === "TokenExpiredError"){
+                console.log('this is payload', payload.uid)
+                let redis_token = await redisCli.get(String(payload.uid));
+                console.log(redis_token);
+                if (!redis_token) redis_token = null;
                 if (
                   !redis_token ||
                   redis_token.refresh_token === refreshtoken
                 ) {
-                  reject("Обнаружена попытка взлома");
+                  console.log('here 4')
+                  res.status(403).send({
+                    success: false,
+                    content: {},
+                    message: `Нет доступа к ресурсу!`,
+                    code: 403
+                  })
                 } else {
-                  if (redis_token.expires > new Date()) {
+                  console.log('here 5')
+                  if (redis_token.expires > new Date()){
+                    console.log('here 6')
                     let refresh_token = await jwt.sign(payload, REFRESH_SECRET, {
                       expiresIn: Number(REFRESH_EXPIRATION)
                     });
-  
-                    res.cookie("__refresh_token", refresh_token, {
+
+                    res.cookie("refresh_token", refresh_token, {
                       // secure: true,
                       httpOnly: true
                     });
-  
-                    let refreshTokenMaxage = new Date((new Date()).getTime() + Number(REFRESH_EXPIRATION)); // env in ms
-                    redisCli.set(
-                      decoded.uid,
+
+                    let refreshTokenMaxage = new Date((new Date()).getTime() + Number(REFRESH_EXPIRATION)); //env in ms
+                    let cash = await redisCli.set(
+                      String(decoded.uid),
                       JSON.stringify({
                         refresh_token: refresh_token,
                         expires: refreshTokenMaxage
                       }),
                     );
+                    if (!cash){
+                      return res.status(500).send({
+                        success: false,
+                        content: {},
+                        message: `Internal server error`,
+                        code: 500
+                      }) 
+                    }
                   }
-  
-                  let token = jwt.sign({ uid: decoded.uid }, process.env.ACCESS_SECRET, {
-                    expiresIn: Number(ACCESS_EXPIRATION),
-                  });
-  
-                  res.cookie("__access_token", token, {
-                    httpOnly: true
-                  });
-                  resolve({
-                    res: res,
-                    req: req
-                  });
+                    let token = await jwt.sign({ uid: payload.uid }, process.env.ACCESS_SECRET, {
+                      expiresIn: Number(ACCESS_EXPIRATION),
+                    });
+
+                    res.cookie("access_token", token, {
+                      httpOnly: true
+                    });
+                    console.log('зашел в первй next')
+                    next()
+                  
+                  console.log('here 7')
                 }
-              } else {
-                reject(err);
+              }
+            } else {
+
+              next()
             }
-          } else {
-            resolve({
-              res: res,
-              req: req
-            });
-          }
-        });
-      } else {
-          reject({
-            res: res,
-            req: req
           })
-        };
         } else {
-          reject({
-            res: res,
-            req: req
+          return res.status(403).send({
+            success: false,
+            content: {},
+            message: `Токены доступа отсутствуют!`,
+            code: 403
           })
         }
-    });
-  }
+      } else {
+        return res.status(500).send({
+          success: false,
+          content: {},
+          message: `Переменные доступа не переданы!`,
+          code: 500
+        })
+      }
+    }
 }
 
 

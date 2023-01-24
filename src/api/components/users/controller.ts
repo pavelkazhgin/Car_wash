@@ -13,6 +13,7 @@ class UserController {
       } 
       if (email == null){
         result = await db.signInPhone(phone);
+        console.log("1", result)
       }
       try {
         if (result){
@@ -25,7 +26,9 @@ class UserController {
             phone: result.phone,
             email: result.email
           }
+          console.log("2", payload)
           let tokens = await jwtService.generateTokens(payload.id)
+          console.log("3", tokens)
           if (!tokens){
             return {
               success: false,
@@ -34,6 +37,7 @@ class UserController {
               code: 500
             }
           }
+          console.log("4", tokens)
           return {
             success: true,
             content: {

@@ -1,15 +1,5 @@
 version: "3"
 services:
-  carwash:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: "nodejs:alpine"
-    container_name: nodejs
-    restart: unless-stopped
-    ports: 
-      - "3000:3000"
-
   postgres:
     image: postgres:14.6
     container_name: carwash
@@ -29,4 +19,13 @@ services:
     ports: 
       - "6379:6379"
 
+  carwash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: "nodejs:alpine"
+    container_name: nodejs
+    restart: unless-stopped
+    ports: 
+      - "3000:3000"
     
